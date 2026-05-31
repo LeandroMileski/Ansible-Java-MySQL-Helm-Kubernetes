@@ -1,0 +1,16 @@
+[control_plane]
+${cp_label} ansible_host=${cp_ip}
+
+[workers]
+%{ for w in workers ~}
+${w.label} ansible_host=${w.ip}
+%{ endfor ~}
+
+# Convenience group so "common" tasks can target every node at once.
+[k8s_cluster:children]
+control_plane
+workers
+
+[k8s_cluster:vars]
+ansible_user=root
+ansible_python_interpreter=/usr/bin/python3
