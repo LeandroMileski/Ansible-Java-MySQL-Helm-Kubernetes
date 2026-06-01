@@ -1,3 +1,7 @@
+provider "linode" {
+  token = var.linode_token
+}
+
 locals {
   # A random-ish root password is required by the API but we never use it:
   # access is via SSH key only. Rotate/ignore it.

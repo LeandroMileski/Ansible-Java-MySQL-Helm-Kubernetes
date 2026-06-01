@@ -12,7 +12,7 @@ variable "ssh_pubkey" {
 variable "region" {
   description = "Linode region."
   type        = string
-  default     = "eu-west" # London. Pick one close to you: linode-cli regions list
+  default     = "us-ord" # London. Pick one close to you: linode-cli regions list
 }
 
 variable "instance_type" {
