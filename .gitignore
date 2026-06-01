@@ -1,1 +1,1 @@
-tfstate, *.tfvars, hosts.ini, vault.yml
+*.tfstate , *.tfvars , hosts.ini , vault.yml, .terraform*
