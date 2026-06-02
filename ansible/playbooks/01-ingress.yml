@@ -1,0 +1,6 @@
+---
+- name: Install ingress controller
+  hosts: control_plane
+  become: true
+  roles:
+    - ingress

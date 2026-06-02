@@ -1,0 +1,12 @@
+---
+- name: Initialise control plane
+  hosts: control_plane
+  become: true
+  roles:
+    - control_plane
+
+- name: Verify join command fact
+  hosts: control_plane
+  tasks:
+    - ansible.builtin.debug:
+        var: kubeadm_join_command
