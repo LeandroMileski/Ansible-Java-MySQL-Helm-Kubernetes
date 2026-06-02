@@ -1,0 +1,35 @@
+---
+- name: Check for helm binary
+  ansible.builtin.command: helm version
+  register: helm_check
+  changed_when: false
+  failed_when: false
+
+- name: Install helm
+  ansible.builtin.shell: >
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    | bash
+  when: helm_check.rc != 0
+  changed_when: true
+
+- name: Add ingress-nginx helm repo
+  kubernetes.core.helm_repository:
+    name: ingress-nginx
+    repo_url: https://kubernetes.github.io/ingress-nginx
+
+- name: Install ingress-nginx (NodePort)
+  kubernetes.core.helm:
+    name: ingress-nginx
+    chart_ref: ingress-nginx/ingress-nginx
+    release_namespace: "{{ ingress_namespace }}"
+    create_namespace: true
+    kubeconfig: "{{ kubeconfig }}"
+    wait: true
+    values:
+      controller:
+        service:
+          type: NodePort
+          nodePorts:
+            http: "{{ ingress_http_nodeport }}"
+            https: "{{ ingress_https_nodeport }}"
+            

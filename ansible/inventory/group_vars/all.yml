@@ -1,2 +1,9 @@
 ---
 k8s_version: "1.32"
+
+# Cluster networking
+pod_network_cidr: "10.244.0.0/16"   # must match Flannel's default
+flannel_manifest_url: "https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml"
+kubeconfig: "/etc/kubernetes/admin.conf"
+
+java_image: "leandromileski/java-mysql-app:1.0.0"

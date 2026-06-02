@@ -1,0 +1,66 @@
+---
+# --- Idempotency guard ----------------------------------------------
+- name: Check if cluster is already initialised
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: admin_conf
+
+# --- kubeadm init ---------------------------------------------------
+- name: Initialise the control plane
+  ansible.builtin.command: >
+    kubeadm init
+    --apiserver-advertise-address={{ apiserver_advertise_address }}
+    --pod-network-cidr={{ pod_network_cidr }}
+  when: not admin_conf.stat.exists
+  changed_when: true
+
+# --- kubeconfig for root --------------------------------------------
+- name: Create /root/.kube
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: "0755"
+
+- name: Copy admin.conf to root kubeconfig
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    mode: "0600"
+
+# --- CNI: cluster stays NotReady without this -----------------------
+- name: Check if Flannel is already installed
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    get daemonset -n kube-flannel kube-flannel-ds
+  register: flannel_check
+  changed_when: false
+  failed_when: false
+
+- name: Apply Flannel CNI
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ flannel_manifest_url }}
+  when: flannel_check.rc != 0
+  changed_when: true
+
+# --- Produce the join command for workers (THE key task) ------------
+- name: Generate worker join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_cmd
+  changed_when: false
+
+- name: Store join command as a host fact
+  ansible.builtin.set_fact:
+    kubeadm_join_command: "{{ join_cmd.stdout }}"
+
+# --- Wait for API server to be responsive ---------------------------
+- name: Wait for API server readiness
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    get --raw='/readyz'
+  register: readyz
+  until: readyz.rc == 0
+  retries: 20
+  delay: 6
+  changed_when: false

@@ -1,0 +1,15 @@
+---
+# kubelet.conf is written by kubeadm join on success —
+# if it exists, this node already joined.
+- name: Check if node already joined
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+# hostvars reads the join command that the control_plane play
+# set_fact'd during this same ansible-playbook run.
+# This is the cross-host pattern.
+- name: Join the cluster
+  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].kubeadm_join_command }}"
+  when: not kubelet_conf.stat.exists
+  changed_when: true

@@ -1,0 +1,4 @@
+---
+ingress_namespace: "ingress-nginx"
+ingress_http_nodeport: 30080
+ingress_https_nodeport: 30443
