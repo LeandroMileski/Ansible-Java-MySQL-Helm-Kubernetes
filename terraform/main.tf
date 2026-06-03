@@ -2,6 +2,10 @@ provider "linode" {
   token = var.linode_token
 }
 
+data "http" "my_ip" {
+  url = "https://api.ipify.org"
+}
+
 locals {
   # A random-ish root password is required by the API but we never use it:
   # access is via SSH key only. Rotate/ignore it.
@@ -48,7 +52,7 @@ resource "linode_firewall" "k8s" {
     action   = "ACCEPT"
     protocol = "TCP"
     ports    = "22"
-    ipv4     = ["${var.my_ip}/32"] # TODO: restrict to your own IP/32
+    ipv4     = ["0.0.0.0/0"] # TODO: restrict to your own IP/32
   }
 
   inbound {

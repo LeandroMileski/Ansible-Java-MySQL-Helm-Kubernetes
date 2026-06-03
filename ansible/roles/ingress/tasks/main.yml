@@ -33,8 +33,6 @@
             http: "{{ ingress_http_nodeport }}"
             https: "{{ ingress_https_nodeport }}"
             
-# The webhook is served by the controller pod. Block until it's Ready
-# so the Ingress apply in the next play never races the webhook.
 - name: Wait for ingress controller to be ready
   ansible.builtin.command: >
     kubectl --kubeconfig {{ kubeconfig }}
@@ -42,4 +40,8 @@
     --for=condition=ready pod
     --selector=app.kubernetes.io/component=controller
     --timeout=180s
+  register: wait_result
+  until: wait_result.rc == 0
+  retries: 10
+  delay: 10
   changed_when: false

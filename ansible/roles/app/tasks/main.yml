@@ -40,23 +40,6 @@
   changed_when: "'unchanged' not in apply_secret.stdout"
   no_log: true
 
-- name: Apply MySQL deployment and service
-  ansible.builtin.command: >
-    kubectl --kubeconfig {{ kubeconfig }}
-    apply -f {{ k8s_remote_dir }}/{{ item }}
-  loop:
-    - mysql-deployment.yaml
-    - mysql-service.yaml
-  register: apply_mysql
-  changed_when: "'unchanged' not in apply_mysql.stdout"
-
-- name: Wait for MySQL rollout
-  ansible.builtin.command: >
-    kubectl --kubeconfig {{ kubeconfig }}
-    -n {{ app_namespace }}
-    rollout status deployment/mysql-deployment --timeout=180s
-  changed_when: false
-
 - name: Apply Java app and service
   ansible.builtin.command: >
     kubectl --kubeconfig {{ kubeconfig }}

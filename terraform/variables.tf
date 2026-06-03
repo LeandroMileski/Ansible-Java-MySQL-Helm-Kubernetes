@@ -38,9 +38,3 @@ variable "image" {
   type        = string
   default     = "linode/ubuntu24.04"
 }
-
-variable "my_ip" {
-  description = "Define your IP to allow SSH access."
-  type        = string
-  default     = "0.0.0.0"
-}

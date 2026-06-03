@@ -4,7 +4,7 @@ metadata:
   name: db-config
   namespace: java-mysql
 data:
-  DB_HOST: "mysql-service" # Kubernetes DNS resolves mysql-service to the right pod automatically.
+  DB_HOST: "mysql-primary"  # write-read replica
   DB_PORT: "3306"
   DB_NAME: "team_app"
 

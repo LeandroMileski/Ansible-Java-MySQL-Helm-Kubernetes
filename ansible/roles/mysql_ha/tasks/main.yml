@@ -10,6 +10,7 @@
     values:
       # --- the legacy-image workaround ---
       global:
+        defaultStorageClass: local-path
         security:
           allowInsecureImages: true
       image:

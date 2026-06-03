@@ -1,4 +1,5 @@
 ---
 - import_playbook: 00-bootstrap-cluster.yml
 - import_playbook: 01-ingress.yml
-- import_playbook: 02-deploy-app.yml
+- import_playbook: 02-mysql-ha.yml      # NEW — replicated MySQL
+- import_playbook: 03-deploy-app.yml  
