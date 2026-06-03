@@ -1,0 +1,76 @@
+---
+- name: Ensure remote manifest directory exists
+  ansible.builtin.file:
+    path: "{{ k8s_remote_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy manifests to control plane
+  ansible.builtin.copy:
+    src: "{{ k8s_local_dir }}/"
+    dest: "{{ k8s_remote_dir }}/"
+    mode: "0644"
+
+- name: Apply namespace
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ k8s_remote_dir }}/00-namespace.yaml
+  register: apply_ns
+  changed_when: "'unchanged' not in apply_ns.stdout"
+
+- name: Apply ConfigMap
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ k8s_remote_dir }}/db-configmap.yaml
+  register: apply_cm
+  changed_when: "'unchanged' not in apply_cm.stdout"
+
+- name: Render Secret from vaulted vars
+  ansible.builtin.template:
+    src: db-secret.yaml.j2
+    dest: "{{ k8s_remote_dir }}/db-secret.yaml"
+    mode: "0600"
+  no_log: true
+
+- name: Apply Secret
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ k8s_remote_dir }}/db-secret.yaml
+  register: apply_secret
+  changed_when: "'unchanged' not in apply_secret.stdout"
+  no_log: true
+
+- name: Apply MySQL deployment and service
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ k8s_remote_dir }}/{{ item }}
+  loop:
+    - mysql-deployment.yaml
+    - mysql-service.yaml
+  register: apply_mysql
+  changed_when: "'unchanged' not in apply_mysql.stdout"
+
+- name: Wait for MySQL rollout
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    -n {{ app_namespace }}
+    rollout status deployment/mysql-deployment --timeout=180s
+  changed_when: false
+
+- name: Apply Java app, service and ingress
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    apply -f {{ k8s_remote_dir }}/{{ item }}
+  loop:
+    - java-deployment.yaml
+    - java-service.yaml
+    - java-ingress.yaml
+  register: apply_java
+  changed_when: "'unchanged' not in apply_java.stdout"
+
+- name: Wait for Java app rollout
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubeconfig }}
+    -n {{ app_namespace }}
+    rollout status deployment/java-deployment --timeout=180s
+  changed_when: false

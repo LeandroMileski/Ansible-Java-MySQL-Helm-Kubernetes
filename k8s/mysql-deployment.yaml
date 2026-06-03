@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  namespace: java-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy: 
+    type: Recreate        # never run two MySQL pods against the same volume
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+          - containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: MYSQL_ROOT_PASSWORD
+          - name: MYSQL_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: db-config
+                key: DB_NAME
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: DB_USER
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: DB_PASSWORD
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/mysql
+      volumes:
+      - name: data
+        emptyDir: {}    # ephemeral for now — data lost on pod restart

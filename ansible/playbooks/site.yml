@@ -1,0 +1,4 @@
+---
+- import_playbook: 00-bootstrap-cluster.yml
+- import_playbook: 01-ingress.yml
+- import_playbook: 02-deploy-app.yml

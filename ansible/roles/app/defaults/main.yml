@@ -1,0 +1,3 @@
+---
+k8s_local_dir: "{{ playbook_dir }}/../../k8s"
+k8s_remote_dir: "/root/k8s"

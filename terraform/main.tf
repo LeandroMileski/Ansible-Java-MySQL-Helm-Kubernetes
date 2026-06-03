@@ -6,6 +6,13 @@ locals {
   # A random-ish root password is required by the API but we never use it:
   # access is via SSH key only. Rotate/ignore it.
   root_pass = "12312323-${var.label_prefix}-9f3a!"
+
+  node_cidrs = [
+    for ip in concat(
+      [linode_instance.control_plane.ip_address],
+      linode_instance.worker[*].ip_address
+    ) : "${ip}/32"
+  ]
 }
 
 resource "linode_instance" "control_plane" {
@@ -58,6 +65,22 @@ resource "linode_firewall" "k8s" {
     protocol = "TCP"
     ports    = "6443" # kube-apiserver (handy for kubectl from your laptop)
     ipv4     = ["0.0.0.0/0"]
+  }
+
+  inbound { #This allows all TCP between your nodes (using their IPs as the source)
+    label    = "allow-cluster-tcp"
+    action   = "ACCEPT"
+    protocol = "TCP"
+    ports    = "1-65535"
+    ipv4     = local.node_cidrs
+  }
+
+  inbound { #This allows all UDP between your nodes (using their IPs as the source)
+    label    = "allow-cluster-udp"
+    action   = "ACCEPT"
+    protocol = "UDP"
+    ports    = "1-65535"
+    ipv4     = local.node_cidrs
   }
 
   linodes = concat(

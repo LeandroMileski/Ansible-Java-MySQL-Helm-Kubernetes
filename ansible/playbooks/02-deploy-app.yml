@@ -1,0 +1,6 @@
+---
+- name: Deploy Java + MySQL application
+  hosts: control_plane
+  become: true
+  roles:
+    - app
