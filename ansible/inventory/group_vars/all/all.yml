@@ -9,3 +9,5 @@ kubeconfig: "/etc/kubernetes/admin.conf"
 app_namespace: "java-mysql"
 java_image: "leandromileski/java-mysql-app:1.0.0"
 app_host: "java.{{ hostvars[groups['workers'][0]].ansible_host }}.nip.io"
+
+db_name: "team_app"

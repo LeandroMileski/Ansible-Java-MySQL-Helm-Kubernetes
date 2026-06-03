@@ -1,0 +1,6 @@
+---
+- name: Deploy replicated MySQL
+  hosts: control_plane
+  become: true
+  roles:
+    - mysql_ha

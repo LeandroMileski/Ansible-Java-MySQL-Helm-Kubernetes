@@ -1,0 +1,27 @@
+---
+- name: Deploy replicated MySQL via Helm chart
+  kubernetes.core.helm:
+    name: mysql
+    chart_ref: oci://registry-1.docker.io/bitnamicharts/mysql
+    release_namespace: "{{ app_namespace }}"
+    kubeconfig: "{{ kubeconfig }}"
+    wait: true
+    timeout: "600s"
+    values:
+      # --- the legacy-image workaround ---
+      global:
+        security:
+          allowInsecureImages: true
+      image:
+        registry: docker.io
+        repository: bitnamilegacy/mysql
+      # --- the replication topology (the two knobs you found) ---
+      architecture: replication
+      secondary:
+        replicaCount: 2
+      # --- credentials, fed from your vault ---
+      auth:
+        rootPassword: "{{ db_root_password }}"
+        database: "{{ db_name }}"
+        username: "{{ db_user }}"
+        password: "{{ db_password }}"
