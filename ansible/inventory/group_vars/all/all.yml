@@ -1,5 +1,6 @@
 ---
 k8s_version: "1.32"
+local_path_version: "v0.0.30" # PVC driver
 
 # Cluster networking
 pod_network_cidr: "10.244.0.0/16"   # must match Flannel's default
@@ -11,3 +12,4 @@ java_image: "leandromileski/java-mysql-app:1.0.0"
 app_host: "java.{{ hostvars[groups['workers'][0]].ansible_host }}.nip.io"
 
 db_name: "team_app"
+
